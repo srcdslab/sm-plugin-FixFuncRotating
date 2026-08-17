@@ -4,7 +4,7 @@
 This repository contains a single SourcePawn plugin **FixFuncRotating** that fixes issues with `func_rotating` entities in Source engine games. The plugin specifically addresses problems with the `StartForward` and `StopAtStartPos` inputs by using DHooks to detour engine functions and modify entity behavior.
 
 **Target Environment:**
-- SourceMod 1.11.0+ (currently targeting 1.11.0-git6917)
+- SourceMod 1.12.x
 - Source engine games (primarily Counter-Strike series)
 - Linux servers (gamedata includes Linux signatures)
 
@@ -19,25 +19,22 @@ This repository contains a single SourcePawn plugin **FixFuncRotating** that fix
 │   │   └── FixFuncRotating.games.txt  # Function signatures for DHooks
 │   └── scripting/
 │       └── FixFuncRotating.sp    # Main plugin source code
-├── sourceknight.yaml             # Build configuration
 └── .gitignore
 ```
 
 ## Build System & CI/CD
 
-### SourceKnight Build Tool
-This project uses **SourceKnight** as its build system:
-- Configuration: `sourceknight.yaml`
-- Automatic dependency management (downloads SourceMod 1.11.0-git6917)
-- Compiles `.sp` files to `.smx` plugins
+### Native GitHub Actions Build
+This project builds with a native GitHub Actions workflow (no external build tool):
+- Compiler: `rumblefrog/setup-sp` (SourceMod 1.12.x)
+- Compiles `.sp` files to `.smx` plugins via `spcomp`
 - Packages plugins with gamedata for distribution
 
 ### GitHub Actions Pipeline
 The CI/CD pipeline (`.github/workflows/ci.yml`):
-1. **Build**: Compiles plugin using SourceKnight action
-2. **Package**: Creates distribution with plugins and gamedata
-3. **Tag**: Auto-tags builds from main/master branch as "latest"
-4. **Release**: Creates GitHub releases with tar.gz packages
+1. **Build**: Compiles plugin with `spcomp` and packages plugins + gamedata
+2. **Tag**: Auto-tags builds from main/master branch as "latest"
+3. **Release**: Creates GitHub releases with tar.gz packages
 
 To trigger builds:
 - Push to any branch triggers build
@@ -140,7 +137,7 @@ Currently only includes Linux signatures - Windows support would require additio
 3. Test function address resolution
 
 ### Updating SourceMod Version
-1. Modify `sourceknight.yaml` dependency version
+1. Modify the `version` input for `rumblefrog/setup-sp` in `.github/workflows/ci.yml`
 2. Test for any API compatibility issues
 3. Update backward compatibility code if needed
 
@@ -158,7 +155,7 @@ Currently only includes Linux signatures - Windows support would require additio
 ## Testing & Validation
 
 ### Local Testing
-Since SourceKnight isn't available in all environments:
+Since a full build toolchain isn't available in all environments:
 1. Use a SourceMod development server
 2. Load the plugin and test with `func_rotating` entities
 3. Verify both StartForward and StopAtStartPos behaviors work correctly
