@@ -95,14 +95,17 @@ public void OnPluginStart()
 	if(!pUpdateSpeed)
 	{
 		LogError("Could not find CFuncRotating::UpdateSpeed address");
+		delete hGameConf;
 		return;
 	}
 
 	g_CFuncRotating_UpdateSpeed = DHookCreateDetour(pUpdateSpeed, CallConv_THISCALL, ReturnType_Void, ThisPointer_CBaseEntity);
 	DHookAddParam(g_CFuncRotating_UpdateSpeed, HookParamType_Float);
-	
+
 	if(!DHookEnableDetour(g_CFuncRotating_UpdateSpeed, false, CFuncRotating_UpdateSpeed))
 	{
 		LogError("Could not enable detour for CFuncRotating::UpdateSpeed");
 	}
+
+	delete hGameConf;
 }
