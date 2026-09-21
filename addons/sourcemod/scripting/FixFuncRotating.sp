@@ -11,7 +11,7 @@ public Plugin myinfo =
 	name = "FixFuncRotating",
 	author = "Cloud Strife",
 	description = "Fixes func_rotating`s StartForward and StopAtStartPos inputs",
-	version = "1.0.2",
+	version = "1.0.3",
 	url = ""
 };
 
