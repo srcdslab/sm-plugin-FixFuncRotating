@@ -21,12 +21,12 @@ Handle g_CFuncRotating_UpdateSpeed = null;
 #if SOURCEMOD_V_MAJOR >= 1 && SOURCEMOD_V_MINOR < 12
 stock float FloatMod(float num, float denom)
 {
-    return num - denom * RoundToFloor(num / denom);
+	return num - denom * RoundToFloor(num / denom);
 }
 
 stock float operator%(float oper1, float oper2)
 {
-    return FloatMod(oper1, oper2);
+	return FloatMod(oper1, oper2);
 }
 #endif
 
@@ -60,11 +60,11 @@ public MRESReturn CFuncRotating_UpdateSpeed(int entity, Handle hParams)
 			if ( angDelta > 180.0 ) angDelta -= 360.0;
 
 			if(FloatAbs(angDelta) < FloatAbs(avelpertick[ checkAxis ]))
-        	{
-        		SetEntPropVector(entity, Prop_Data, "m_angRotation", angStart);
-        		return MRES_Ignored;
-        	}
-        }
+			{
+				SetEntPropVector(entity, Prop_Data, "m_angRotation", angStart);
+				return MRES_Ignored;
+			}
+		}
 	}
 	return MRES_Ignored;
 }
