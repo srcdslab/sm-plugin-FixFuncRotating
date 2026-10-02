@@ -61,7 +61,7 @@ To trigger builds:
 - **Remove trailing whitespace**
 
 ### Memory Management
-- Use `Handle` for DHooks detours (current pattern in codebase)
+- Use the `DynamicDetour` methodmap for DHooks detours and the `GameData` methodmap for gamedata
 - **Important**: Use `delete` instead of `CloseHandle()` for newer SourceMod versions
 - Never check for null before `delete` - it's safe to call on null handles
 - For StringMap/ArrayList: Use `delete` instead of `.Clear()` to prevent memory leaks
@@ -71,33 +71,37 @@ When working with DHooks in this codebase:
 
 ```sourcepawn
 // 1. Load gamedata
-Handle hGameConf = LoadGameConfigFile("FixFuncRotating.games");
-if(hGameConf == INVALID_HANDLE) {
+GameData hGameConf = new GameData("FixFuncRotating.games");
+if(hGameConf == null) {
     LogError("Couldn't load gamedata!");
     return;
 }
 
 // 2. Get function address
-Address pFunction = GameConfGetAddress(hGameConf, "FunctionName");
+Address pFunction = hGameConf.GetAddress("FunctionName");
 if(!pFunction) {
     LogError("Could not find function address");
+    delete hGameConf;
     return;
 }
 
 // 3. Create detour
-Handle detour = DHookCreateDetour(pFunction, CallConv_THISCALL, ReturnType_Void, ThisPointer_CBaseEntity);
+DynamicDetour detour = new DynamicDetour(pFunction, CallConv_THISCALL, ReturnType_Void, ThisPointer_CBaseEntity);
 
 // 4. Add parameters if needed
-DHookAddParam(detour, HookParamType_Float);
+detour.AddParam(HookParamType_Float);
 
 // 5. Enable detour
-if(!DHookEnableDetour(detour, false, CallbackFunction)) {
+if(!detour.Enable(Hook_Pre, CallbackFunction)) {
     LogError("Could not enable detour");
 }
+
+// 6. Free gamedata
+delete hGameConf;
 ```
 
 ### Error Handling
-- Always check gamedata loading with `INVALID_HANDLE`
+- Always check gamedata loading against `null`
 - Validate all function addresses before creating detours
 - Log meaningful error messages using `LogError()`
 - Use proper return values (`MRES_Ignored`, etc.)
@@ -188,12 +192,7 @@ The GitHub Actions pipeline validates:
 - `sm_dump_classes CFuncRotating`: Show entity properties (if available)
 
 ### Backward Compatibility
-The plugin includes compatibility code for SourceMod < 1.13:
-```sourcepawn
-#if SOURCEMOD_V_MAJOR >= 1 && SOURCEMOD_V_MINOR < 13
-// FloatMod implementation for older versions
-#endif
-```
+The plugin targets SourceMod 1.12+ and relies on the native float `%` operator and the `GameData` / `DynamicDetour` methodmaps; no compatibility shims are kept for older versions.
 
 ## Performance Considerations
 - DHooks detours add minimal overhead when functions are called

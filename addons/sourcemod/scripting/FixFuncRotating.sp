@@ -11,24 +11,12 @@ public Plugin myinfo =
 	name = "FixFuncRotating",
 	author = "Cloud Strife",
 	description = "Fixes func_rotating`s StartForward and StopAtStartPos inputs",
-	version = "1.0.3",
+	version = "1.0.4",
 	url = ""
 };
 
-Handle g_CFuncRotating_StartForward = null;
-Handle g_CFuncRotating_UpdateSpeed = null;
-
-#if SOURCEMOD_V_MAJOR >= 1 && SOURCEMOD_V_MINOR < 12
-stock float FloatMod(float num, float denom)
-{
-	return num - denom * RoundToFloor(num / denom);
-}
-
-stock float operator%(float oper1, float oper2)
-{
-	return FloatMod(oper1, oper2);
-}
-#endif
+DynamicDetour g_CFuncRotating_StartForward = null;
+DynamicDetour g_CFuncRotating_UpdateSpeed = null;
 
 // Set m_bStopAtStartPos to false
 public MRESReturn CFuncRotating_InputStartForward(int entity)
@@ -37,11 +25,11 @@ public MRESReturn CFuncRotating_InputStartForward(int entity)
 	return MRES_Ignored;
 }
 
-public MRESReturn CFuncRotating_UpdateSpeed(int entity, Handle hParams)
+public MRESReturn CFuncRotating_UpdateSpeed(int entity, DHookParam hParams)
 {
 	if(GetEntProp(entity, Prop_Data, "m_bStopAtStartPos", 1))
 	{
-		float flNewSpeed = view_as<float>(DHookGetParam(hParams, 1));
+		float flNewSpeed = hParams.Get(1);
 		if(flNewSpeed <= 25)
 		{
 			float vecMoveAng[3], angStart[3], angRotation[3], avelpertick[3];
@@ -71,26 +59,26 @@ public MRESReturn CFuncRotating_UpdateSpeed(int entity, Handle hParams)
 
 public void OnPluginStart()
 {
-	Handle hGameConf = LoadGameConfigFile("FixFuncRotating.games");
-	if(hGameConf == INVALID_HANDLE)
+	GameData hGameConf = new GameData("FixFuncRotating.games");
+	if(hGameConf == null)
 	{
 		LogError("Couldn't load FixFuncRotating.games game config!");
 		return;
 	}
 
-	Address pStartForward = GameConfGetAddress(hGameConf, "CFuncRotating::InputStartForward");
+	Address pStartForward = hGameConf.GetAddress("CFuncRotating::InputStartForward");
 	if(pStartForward)
 	{
-		g_CFuncRotating_StartForward = DHookCreateDetour(pStartForward, CallConv_THISCALL, ReturnType_Void, ThisPointer_CBaseEntity);
+		g_CFuncRotating_StartForward = new DynamicDetour(pStartForward, CallConv_THISCALL, ReturnType_Void, ThisPointer_CBaseEntity);
 
-		if(!DHookEnableDetour(g_CFuncRotating_StartForward, false, CFuncRotating_InputStartForward))
+		if(!g_CFuncRotating_StartForward.Enable(Hook_Pre, CFuncRotating_InputStartForward))
 		{
 			LogError("Could not enable detour for CFuncRotating::InputStartForward");
 		}
 	}
 	else LogError("Could not find CFuncRotating::InputStartForward address");
 
-	Address pUpdateSpeed = GameConfGetAddress(hGameConf, "CFuncRotating::UpdateSpeed");
+	Address pUpdateSpeed = hGameConf.GetAddress("CFuncRotating::UpdateSpeed");
 	if(!pUpdateSpeed)
 	{
 		LogError("Could not find CFuncRotating::UpdateSpeed address");
@@ -98,10 +86,10 @@ public void OnPluginStart()
 		return;
 	}
 
-	g_CFuncRotating_UpdateSpeed = DHookCreateDetour(pUpdateSpeed, CallConv_THISCALL, ReturnType_Void, ThisPointer_CBaseEntity);
-	DHookAddParam(g_CFuncRotating_UpdateSpeed, HookParamType_Float);
+	g_CFuncRotating_UpdateSpeed = new DynamicDetour(pUpdateSpeed, CallConv_THISCALL, ReturnType_Void, ThisPointer_CBaseEntity);
+	g_CFuncRotating_UpdateSpeed.AddParam(HookParamType_Float);
 
-	if(!DHookEnableDetour(g_CFuncRotating_UpdateSpeed, false, CFuncRotating_UpdateSpeed))
+	if(!g_CFuncRotating_UpdateSpeed.Enable(Hook_Pre, CFuncRotating_UpdateSpeed))
 	{
 		LogError("Could not enable detour for CFuncRotating::UpdateSpeed");
 	}
