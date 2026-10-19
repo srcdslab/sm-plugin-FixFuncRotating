@@ -10,10 +10,18 @@
 				{
 					"signature" "CFuncRotating::UpdateSpeed"
 				}
+				"linux64"
+				{
+					"signature" "CFuncRotating::UpdateSpeed"
+				}
 			}
 			"CFuncRotating::InputStartForward"
 			{
 				"linux"
+				{
+					"signature"	"CFuncRotating::InputStartForward"
+				}
+				"linux64"
 				{
 					"signature"	"CFuncRotating::InputStartForward"
 				}
@@ -25,11 +33,13 @@
 			{
 				"library"	"server"
 				"linux"		"@_ZN13CFuncRotating11UpdateSpeedEf"
+				"linux64"		"@_ZN13CFuncRotating11UpdateSpeedEf"
 			}
 			"CFuncRotating::InputStartForward"
 			{
 				"library"	"server"
 				"linux"		"@_ZN13CFuncRotating17InputStartForwardER11inputdata_t"
+				"linux64"		"@_ZN13CFuncRotating17InputStartForwardER11inputdata_t"
 			}
 		}
 	}
